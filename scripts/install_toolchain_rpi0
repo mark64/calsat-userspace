@@ -1,0 +1,51 @@
+#!/bin/bash
+# this allows the raspberry pi toolchain to be setup and placed in 
+#   the project folder, no sudo required
+# sourced from the cmake wiki, located at the following URL
+#   as of this writing on 3/17/17
+# https://cmake.org/Wiki/CMake_Cross_Compiling
+# by Mark Hill
+
+# build tool location (for the gcc, g++, ld, etc. programs)
+TOOL_TUPLE=arm-bcm2708harhp-linux-gnueabi
+TOOL_ROOT_DIR=$TOOLCHAIN_DIR/arm-bcm2708/$TOOL_TUPLE/$TOOL_TUPLE/
+
+# the location of the repo containing the cross compile
+#   toolchain
+TOOLCHAIN_REPO=https://github.com/raspberrypi/tools
+
+# if the toolchain has not already been setup, do so
+#   else return since no work needs to be done
+if [ ! -e $CMAKE_TOOLCHAIN_FILE ]; then
+	printf "Raspberry Pi toolchain file not found\n"
+	printf "Downloading toolchain repo from $TOOLCHAIN_REPO\n"
+
+	# make the parent directory
+	mkdir -p $TOOLCHAIN_DIR 
+	# clone the repo from the source into the destination
+	#   specified by the variables above
+	git clone --depth=1 $TOOLCHAIN_REPO $TOOLCHAIN_DIR
+	
+	# now write to the toolchain file all the settings
+	#  as recommended by the cmake wiki
+	printf "generating cmake toolchain file\n"
+	printf "\
+#Generated automatically by makefile config system \n\
+\n\
+SET(CMAKE_SYSTEM_NAME Linux) \n\
+SET(CMAKE_SYSTEM_VERSION 1) \n\
+\n\
+SET(CMAKE_C_COMPILER $TOOL_ROOT_DIR/bin/gcc) \n\
+SET(CMAKE_FIND_ROOT_PATH $TOOL_ROOT_DIR/sysroot) \n\
+\n\
+SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER) \n\
+SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY) \n\
+SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY) \n\
+	\n" > $CMAKE_TOOLCHAIN_FILE
+fi
+
+
+
+
+
+

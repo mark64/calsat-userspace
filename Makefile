@@ -6,8 +6,10 @@
 RM    := rm -rf
 MKDIR := mkdir -p
 CMAKE := cmake
-TEST_EXECUTABLE_NAME := droneTest
-TEST_MAIN_FILE := flight/FlightTest.cpp
+
+PROJECT_NAME := calsat software
+TEST_EXECUTABLE_NAME := calsat-test
+TEST_MAIN_FILE := test/test.cc
 
 TOOLCHAIN_PREFIX := toolchain_
 TOOLCHAIN_INSTALL_PREFIX := install_
@@ -33,7 +35,7 @@ endif
 TEST_INSTALL_SCRIPT = $(SCRIPTS_DIR)/installTest
 export BUILD_DIR TOOLCHAIN_NAME TOOLCHAIN_DIR CMAKE_TOOLCHAIN_FILE
 
-SUBDIRS = data flight motion drivers orientation sensors
+SUBDIRS = comms drivers orientation telem
 INCLUDE_ROOT = include
 EIGEN_DIR = $(INCLUDE_ROOT)/eigen
 INCLUDES = $(patsubst %,$(INCLUDE_ROOT)/%,$(SUBDIRS)) $(INCLUDE_ROOT) $(EIGEN_DIR)
@@ -69,6 +71,7 @@ $(MAKEFILE): $(CONFIG) $(CMAKE_TOOLCHAIN_FILE) | $(BUILD_DIR)
 		-DPROJECT_LIBS="$(call create-cmake-list,$(PROJECT_LIBS))" \
 		-DTEST_EXECUTABLE_NAME="$(TEST_EXECUTABLE_NAME)" \
 		-DTEST_MAIN_FILE="$(TEST_MAIN_FILE)" \
+		-DPROJECT_NAME="$(DPROJECT_NAME)" \
 		-DCFLAGS="$(CFLAGS)" \
 		-DCXXFLAGS="$(CXXFLAGS)" \
 		-DCMAKE_BUILD_TYPE=Debug \

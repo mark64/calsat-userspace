@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 # flight controller test section
-project("Remote Drone")
+project(${PROJECT_NAME})
 
 set(CMAKE_C_FLAGS "${CFLAGS}")
 set(CMAKE_CXX_FLAGS "${CXXFLAGS}")
