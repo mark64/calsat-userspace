@@ -1,40 +1,34 @@
-/* userspace sensor helper functions
+/* userspace telemetry helper functions
  *
  * by Mark Hill 2017
  */
-#ifndef __sensors_h
-#define __sensors_h
+#ifndef __telemetry_h
+#define __telemetry_h
 
-/*
- * @return			the unreglated system voltage
+/**
+ * Here is a list of guarunteed attributes
+ * there may be others, but behavior is defined for these
+ * In case it's not clear, V = voltage, C = current
  */
-double sens_unreg_sys_voltage(void);
-/*
- * @return			the unregulated system current
- */
-double sens_unreg_sys_current(void);
+#define SYS_UNREG_V 	"sys_unreg_v"
+#define SYS_UNREG_C 	"sys_unreg_c"
+#define BATTERY_V		"batt_v"
+#define BATTERY_C		"batt_c"
+#define SUPPLY_3V3_V	"3v3_v"
+#define SUPPLY_3V3_0_C	"3v3_0_c" /* there are multiple */
+#define SUPPLY_3V3_1_C	"3v3_1_c" /* voltage regulators */
 
-/*
- * @return			the battery voltage
- */
-double sens_batt_voltage(void);
-/*
- * @return			the battery current
- */
-double sens_batt_current(void);
+#define PWR_TELEM_PATH 	"/sys/class/pmu"
 
-/*
- * @return			the true voltage for the 3V3 rail
+/**
+ * gets the value of the specified telemetry attribute
+ * @attribute			the name of the attribute
+ * 							corresponds to the filename
+ * 							in PWR_TELEM_PATH
+ *
+ * @return				a double representation of the
+ * 							attribute file contents
  */
-double sens_3v3_voltage(void);
-/*
- * @return			the current through 3V3 regulator 0
- */
-double sens_3v3_current_0(void);
-/*
- * @return			the current through 3V3 regulator 1
- */
-double sens_3v3_current_1(void);
-
+double telem_for_attribute(const char *attribute);
 
 #endif

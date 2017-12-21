@@ -21,6 +21,17 @@ macro(use_c11)
 endmacro(use_c11)
 use_c11()
 
+macro(use_cxx11)
+	if (CMAKE_VERSION VERSION_LESS "3.1")
+		if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+			set(CMAKE_CXX_FLAGS "--std=gnu11 -pedantic ${CMAKE_CXX_FLAGS}")
+		endif()
+	else()
+		set (CMAKE_CXX_STANDARD 11)
+	endif()
+endmacro(use_cxx11)
+use_cxx11()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDES})
 
 # runs CMake on the subdirectories

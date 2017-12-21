@@ -1,6 +1,3 @@
-# the Makefile wrapper so that I can do out of source builds without having to cd first
-# based on Maurice Ling's Makefile in irvine-01-sw and this site
-#   http://stackoverflow.com/questions/11143062/getting-cmake-to-build-out-of-source-without-wrapping-scripts
 # by Mark Hill
 
 RM    := rm -rf
@@ -17,7 +14,8 @@ NATIVE_TOOLCHAIN_NAME := native
 BUILD_DIR_BASE = build_
 BUILD_DIR = $(BUILD_DIR_BASE)$(subst $(TOOLCHAIN_PREFIX),,$(TOOLCHAIN_NAME))
 SCRIPTS_DIR = scripts
-MAKEFILE = $(BUILD_DIR)/Makefile
+BUILD_MAKEFILE = $(BUILD_DIR)/Makefile
+ROOT_MAKEFILE = Makefile
 CONFIG = .config
 
 ifneq ("","$(wildcard $(strip $(CONFIG)))")
@@ -35,10 +33,11 @@ endif
 TEST_INSTALL_SCRIPT = $(SCRIPTS_DIR)/installTest
 export BUILD_DIR TOOLCHAIN_NAME TOOLCHAIN_DIR CMAKE_TOOLCHAIN_FILE
 
-SUBDIRS = comms drivers orientation telem
+SUBDIRS = telem orientation drivers
 INCLUDE_ROOT = include
 EIGEN_DIR = $(INCLUDE_ROOT)/eigen
-INCLUDES = $(patsubst %,$(INCLUDE_ROOT)/%,$(SUBDIRS)) $(INCLUDE_ROOT) $(EIGEN_DIR)
+INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR)
+# INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR) $(patsubst %,$(INCLUDE_ROOT)/%,$(SUBDIRS)) 
 PROJECT_LIBS = m rt $(SUBDIRS)
 
 COMMFLAGS = -O2 -g
@@ -58,20 +57,20 @@ SUPPORTED_BOARDS_CONFIG_TARGETS := $(patsubst %,%-config,$(SUPPORTED_BOARDS))
 .PHONY: all install test clean distclean cscope cscope.files tags ctags ycm_config depends $(SUPPORTED_BOARDS_CONFIG_TARGETS) reallyclean
 
 
-all: $(MAKEFILE)
+all: $(BUILD_MAKEFILE)
 	$(MAKE) -C $(BUILD_DIR)
 
 depends: $(CONFIG)
 	@ touch $(CONFIG)
 
-$(MAKEFILE): $(CONFIG) $(CMAKE_TOOLCHAIN_FILE) | $(BUILD_DIR)
+$(BUILD_MAKEFILE): $(CONFIG) $(CMAKE_TOOLCHAIN_FILE) $(ROOT_MAKEFILE) | $(BUILD_DIR)
 	(cd $(BUILD_DIR) && \
 		$(CMAKE) -DSUBDIRS="$(call create-cmake-list,$(SUBDIRS))" \
 		-DINCLUDES="$(call create-cmake-list,$(INCLUDES))" \
 		-DPROJECT_LIBS="$(call create-cmake-list,$(PROJECT_LIBS))" \
 		-DTEST_EXECUTABLE_NAME="$(TEST_EXECUTABLE_NAME)" \
 		-DTEST_MAIN_FILE="$(TEST_MAIN_FILE)" \
-		-DPROJECT_NAME="$(DPROJECT_NAME)" \
+		-DPROJECT_NAME="$(PROJECT_NAME)" \
 		-DCFLAGS="$(CFLAGS)" \
 		-DCXXFLAGS="$(CXXFLAGS)" \
 		-DCMAKE_BUILD_TYPE=Debug \
@@ -101,7 +100,7 @@ clean:
 
 distclean:
 	@- $(MAKE) --silent -C $(BUILD_DIR) clean || true
-	@- $(RM) $(MAKEFILE)
+	@- $(RM) $(BUILD_MAKEFILE)
 	@- $(RM) $(BUILD_DIR)/src
 	@- $(RM) $(BUILD_DIR)/test
 	@- $(RM) $(BUILD_DIR)/CMake*
@@ -141,7 +140,7 @@ ctags tags:
 	$(CTAGS) --recurse --exclude=$(SCRIPTS_DIR) --exclude=$(BUILD_DIR_BASE)* --exclude="*.js" --languages=C --languages=+C++ --totals $(CURDIR)
 
 COMPILE_COMMANDS_FILE := compile_commands.json
-$(COMPILE_COMMANDS_FILE): $(CONFIG) | $(BUILD_DIR)
+compile_commands.json: $(CONFIG) | $(BUILD_DIR)
 	ln -srf $(BUILD_DIR)/$(COMPILE_COMMANDS_FILE) $(COMPILE_COMMANDS_FILE)
 
 ycm_config: $(CONFIG) $(COMPILE_COMMANDS_FILE)
