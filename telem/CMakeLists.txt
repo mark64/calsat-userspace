@@ -1,3 +1,3 @@
-set(SOURCES telem.c)
+set(SOURCES pwr.c)
 get_filename_component(LIBNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 add_library(${LIBNAME} SHARED "${SOURCES}")
