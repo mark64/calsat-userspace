@@ -1,5 +1,5 @@
-#!/bin/bash
-# this allows the raspberry pi toolchain to be setup and placed in 
+#!/bin/sh
+# this allows the raspberry pi toolchain to be setup and placed in
 #   the project folder, no sudo required
 # sourced from the cmake wiki, located at the following URL
 #   as of this writing on 3/17/17
@@ -21,11 +21,11 @@ if [ ! -e $CMAKE_TOOLCHAIN_FILE ]; then
 	printf "Downloading toolchain repo from $TOOLCHAIN_REPO\n"
 
 	# make the parent directory
-	mkdir -p $TOOLCHAIN_DIR 
+	mkdir -p $TOOLCHAIN_DIR
 	# clone the repo from the source into the destination
 	#   specified by the variables above
 	git clone --depth=1 $TOOLCHAIN_REPO $TOOLCHAIN_DIR
-	
+
 	# now write to the toolchain file all the settings
 	#  as recommended by the cmake wiki
 	printf "generating cmake toolchain file\n"

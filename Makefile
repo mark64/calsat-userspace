@@ -133,6 +133,7 @@ reallyclean:
 	@- $(RM) cscope*
 	@- $(RM) tags
 	@- $(RM) .ycm_extra_conf.py
+	@- $(RM) compile_commands.json
 
 
 
