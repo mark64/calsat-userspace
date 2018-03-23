@@ -10,6 +10,7 @@ CMAKE := cmake
 PROJECT_NAME := calsat software
 TEST_EXECUTABLE_NAME := calsat-test
 TEST_MAIN_FILE := test/test.cc
+TEST_INSTALL_SCRIPT = $(SCRIPTS_DIR)/installTest.sh
 SUBDIRS = telem orientation drivers
 INCLUDE_ROOT = include
 EIGEN_DIR = $(INCLUDE_ROOT)/eigen
@@ -28,8 +29,8 @@ CXXFLAGS = $(COMMTESTFLAGS)
 endif
 
 # Don't edit this
-TOOLCHAIN_PREFIX := toolchain_
-TOOLCHAIN_INSTALL_PREFIX := install_
+TOOLCHAIN_PREFIX := toolchain-
+TOOLCHAIN_INSTALL_PREFIX := install-
 NATIVE_TOOLCHAIN_NAME := native
 BUILD_DIR_BASE = build_
 BUILD_DIR = $(BUILD_DIR_BASE)$(subst $(TOOLCHAIN_PREFIX),,$(TOOLCHAIN_NAME))
@@ -47,10 +48,9 @@ ifneq ("$(TOOLCHAIN_NAME)","$(TOOLCHAIN_PREFIX)$(NATIVE_TOOLCHAIN_NAME)")
 TOOLCHAIN_DIR = $(BUILD_DIR)/$(subst _,,.$(TOOLCHAIN_PREFIX))/$(TOOLCHAIN_NAME)
 CMAKE_TOOLCHAIN_FILE = $(BUILD_DIR)/$(TOOLCHAIN_NAME).cmake
 TOOLCHAIN_INSTALL_SCRIPTS_DIR = $(SCRIPTS_DIR)
-TOOLCHAIN_INSTALL_SCRIPT = $(TOOLCHAIN_INSTALL_SCRIPTS_DIR)/$(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_NAME)
+TOOLCHAIN_INSTALL_SCRIPT = $(TOOLCHAIN_INSTALL_SCRIPTS_DIR)/$(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_NAME).sh
 endif
 endif
-TEST_INSTALL_SCRIPT = $(SCRIPTS_DIR)/installTest
 export BUILD_DIR TOOLCHAIN_NAME TOOLCHAIN_DIR CMAKE_TOOLCHAIN_FILE
 
 EMPTY :=
@@ -63,11 +63,13 @@ $(strip)
 $(strip)
 endef
 
-SUPPORTED_BOARDS := $(subst $(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_PREFIX),,$(foreach config,$(shell find $(TOOLCHAIN_INSTALL_SCRIPTS_DIR) \
-	-name '$(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_PREFIX)*'),$(shell basename $(config))))
+SUPPORTED_BOARDS := $(subst .sh,,\
+	$(subst $(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_PREFIX),,\
+	$(foreach config,$(shell find $(TOOLCHAIN_INSTALL_SCRIPTS_DIR) \
+	-name '$(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_PREFIX)*'),$(shell basename $(config)))))
 SUPPORTED_BOARDS_CONFIG_TARGETS := $(patsubst %,%-config,$(SUPPORTED_BOARDS))
 
-.PHONY: all install test clean distclean cscope cscope.files tags ctags ycm_config depends $(SUPPORTED_BOARDS_CONFIG_TARGETS) reallyclean listconfigs
+.PHONY: all install test clean distclean cscope cscope.files tags ctags ycm_config depends $(SUPPORTED_BOARDS_CONFIG_TARGETS) reallyclean listconfigs clangfile
 
 
 all: $(BUILD_MAKEFILE)
@@ -160,11 +162,15 @@ ctags tags:
 	$(CTAGS) --recurse --exclude=$(SCRIPTS_DIR) --exclude=$(BUILD_DIR_BASE)* --exclude="*.js" --languages=C --languages=+C++ --totals $(CURDIR)
 
 COMPILE_COMMANDS_FILE := compile_commands.json
-compile_commands.json: $(CONFIG) | $(BUILD_DIR)
+$(COMPILE_COMMANDS_FILE): $(CONFIG) | $(BUILD_DIR)
 	ln -srf $(BUILD_DIR)/$(COMPILE_COMMANDS_FILE) $(COMPILE_COMMANDS_FILE)
 
+# pseudo-target for compile_commands.json
+# used because the alternative is long and complicated to type
+clangfile: $(COMPILE_COMMANDS_FILE)
+
 ycm_config: $(CONFIG) $(COMPILE_COMMANDS_FILE)
-	@#;w$(YCM_GEN_CONFIG) -f $(CURDIR)
+	@ $(YCM_GEN_CONFIG) -f $(CURDIR)
 
 
 help:

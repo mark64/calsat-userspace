@@ -33,16 +33,16 @@ reallyclean`, which removes every generated file. I personally find that none of
 the `clean` targets fix my issues, but it's nice to be able to remove the
 existing object files from your list of suspects.
 
-## Target Generation (Optional)
+## Config Generation
 
-Available targets are generated automagically by the `Makefile` by reading the
-filenames with the prefix `install_toolchain_` in the `scripts/` subdirectory.
-When it finds a file named, for example, `install_toolchain_rpi0`, it creates a
+Available configs are generated automagically by the `Makefile` by reading the
+filenames with the prefix `install-toolchain-` in the `scripts/` subdirectory.
+When it finds a file named, for example, `install-toolchain-rpi0`, it creates a
 target called `rpi0-config`. When you run `make rpi0-config`, `Makefile` runs
-the `install_toolchain_rpi0` script and creates a `.config` file to indicate the
-current toolchain. All builds will then be placed in the `build_rpi0/`
+the `install-toolchain-rpi0.sh` script and creates a `.config` file to indicate
+the current toolchain. All builds will then be placed in the `build_rpi0/`
 subdirectory.
 
 If you want to add a new board to the set of supported boards, make a new
-`install_toolchain_<board>` sh script and place it in the `scripts`
+`install-toolchain-<board>.sh` script and place it in the `scripts`
 subdirectory. Take a look at the rpi0 script to see what needs to be done.

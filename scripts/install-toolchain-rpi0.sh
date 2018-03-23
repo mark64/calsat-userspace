@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # this allows the raspberry pi toolchain to be setup and placed in
 #   the project folder, no sudo required
 # sourced from the cmake wiki, located at the following URL
