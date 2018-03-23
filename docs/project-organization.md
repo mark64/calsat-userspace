@@ -39,5 +39,5 @@ docs**_.
 All shell and python scripts related to the build process, toolchains, testing,
 or other actions not part of the main CubeSat software go here.
 
-See [build-process](build-process,md) for further explanation of toolchain
+See [build-process](build-process.md) for further explanation of toolchain
 scripts.
