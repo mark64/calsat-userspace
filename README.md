@@ -1,12 +1,21 @@
 # CALSAT (STAC CubeSat) Userspace
 
+[![Build Status](https://travis-ci.org/space-technologies-at-california/calsat-userspace.svg?branch=master)](https://travis-ci.org/space-technologies-at-california/calsat-userspace)
+[![CodeFactor](https://www.codefactor.io/repository/github/space-technologies-at-california/calsat-userspace/badge)](https://www.codefactor.io/repository/github/space-technologies-at-california/calsat-userspace)
+
 This repo contains all the software for our CubeSat. It is organized into
 subdirectory for each application.
 
-To build for your host computer, run `make native-config all`
+To build for your host computer, run:
+```shell
+make native-config all
+```
 
-See [docs](docs) for more information, including how to build for the CubeSat's
-computer.
+See [build-process](docs/build-process.md) for more information about building
+this project.
+
+See [project-organization](docs/project-organization.md) for how this project is
+organized.
 
 ## Useful Links
 
