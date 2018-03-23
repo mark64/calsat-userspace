@@ -1,13 +1,33 @@
-# by Mark Hill
-
+# GPLv3
+# by Mark Hill 2017-2018
 RM    := rm -rf
 MKDIR := mkdir -p
 CMAKE := cmake
 
+# Fine to edit this section
+# set to some value through commandline when building release
+# RELEASE =
 PROJECT_NAME := calsat software
 TEST_EXECUTABLE_NAME := calsat-test
 TEST_MAIN_FILE := test/test.cc
+SUBDIRS = telem orientation drivers
+INCLUDE_ROOT = include
+EIGEN_DIR = $(INCLUDE_ROOT)/eigen
+INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR)
+# Not a good idea to do this since then #include paths make no sense
+# INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR) $(patsubst %,$(INCLUDE_ROOT)/%,$(SUBDIRS))
+PROJECT_LIBS = m rt $(SUBDIRS)
+COMMFLAGS = -O2
+COMMTESTFLAGS = -g
+ifdef RELEASE
+CFLAGS = $(COMMFLAGS)
+CXXFLAGS = $(COMMFLAGS)
+else
+CFLAGS = $(COMMTESTFLAGS)
+CXXFLAGS = $(COMMTESTFLAGS)
+endif
 
+# Don't edit this
 TOOLCHAIN_PREFIX := toolchain_
 TOOLCHAIN_INSTALL_PREFIX := install_
 NATIVE_TOOLCHAIN_NAME := native
@@ -18,6 +38,7 @@ BUILD_MAKEFILE = $(BUILD_DIR)/Makefile
 ROOT_MAKEFILE = Makefile
 CONFIG = .config
 
+# Don't edit this
 ifneq ("","$(wildcard $(strip $(CONFIG)))")
 include $(CONFIG)
 endif
@@ -29,37 +50,31 @@ TOOLCHAIN_INSTALL_SCRIPTS_DIR = $(SCRIPTS_DIR)
 TOOLCHAIN_INSTALL_SCRIPT = $(TOOLCHAIN_INSTALL_SCRIPTS_DIR)/$(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_NAME)
 endif
 endif
-
 TEST_INSTALL_SCRIPT = $(SCRIPTS_DIR)/installTest
 export BUILD_DIR TOOLCHAIN_NAME TOOLCHAIN_DIR CMAKE_TOOLCHAIN_FILE
-
-SUBDIRS = telem orientation drivers
-INCLUDE_ROOT = include
-EIGEN_DIR = $(INCLUDE_ROOT)/eigen
-INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR)
-# INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR) $(patsubst %,$(INCLUDE_ROOT)/%,$(SUBDIRS)) 
-PROJECT_LIBS = m rt $(SUBDIRS)
-
-COMMFLAGS = -O2 -g
-CFLAGS = $(COMMFLAGS)
-CXXFLAGS = $(COMMFLAGS)
 
 EMPTY :=
 SPACE := $(EMPTY) $(EMPTY)
 define create-cmake-list
 $(subst $(SPACE),;,$(strip $1))
 endef
+define newline :=
+$(strip)
+$(strip)
+endef
 
 SUPPORTED_BOARDS := $(subst $(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_PREFIX),,$(foreach config,$(shell find $(TOOLCHAIN_INSTALL_SCRIPTS_DIR) \
 	-name '$(TOOLCHAIN_INSTALL_PREFIX)$(TOOLCHAIN_PREFIX)*'),$(shell basename $(config))))
 SUPPORTED_BOARDS_CONFIG_TARGETS := $(patsubst %,%-config,$(SUPPORTED_BOARDS))
 
-.PHONY: all install test clean distclean cscope cscope.files tags ctags ycm_config depends $(SUPPORTED_BOARDS_CONFIG_TARGETS) reallyclean
+.PHONY: all install test clean distclean cscope cscope.files tags ctags ycm_config depends $(SUPPORTED_BOARDS_CONFIG_TARGETS) reallyclean listconfigs
 
 
 all: $(BUILD_MAKEFILE)
 	$(MAKE) -C $(BUILD_DIR)
 
+# useful if you added new files and cmake hasn't seen them yet
+# this is needed because the subdir cmakelists use globbing
 depends: $(CONFIG)
 	@ touch $(CONFIG)
 
@@ -84,7 +99,11 @@ $(BUILD_DIR): $(CONFIG)
 	$(MKDIR) $@
 
 $(CONFIG):
-	$(error "please build a configuration for your device. available config targets: $(SUPPORTED_BOARDS_CONFIG_TARGETS)")
+	$(error no config detected.$(newline)$(subst targets:,targets:$(newline),$(shell $(MAKE) listconfigs))$(newline))
+
+listconfigs:
+	@- printf "build a configuration using \"make <config>\". "
+	@- printf "available config targets:\n\t$(SUPPORTED_BOARDS_CONFIG_TARGETS)\n"
 
 $(SUPPORTED_BOARDS_CONFIG_TARGETS):
 	@ printf "TOOLCHAIN_NAME = $(TOOLCHAIN_PREFIX)$(subst -config,,$@)\n" > $(CONFIG)
@@ -147,7 +166,8 @@ ycm_config: $(CONFIG) $(COMPILE_COMMANDS_FILE)
 	@#;w$(YCM_GEN_CONFIG) -f $(CURDIR)
 
 
-
+help:
+	@- less README.md
 
 
 

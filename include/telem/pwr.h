@@ -34,7 +34,7 @@ static const int channel_for_attr[] = 	{0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2};
  * @return				a double representation of the
  * 							attribute
  */
-inline double pwr_value_for_attribute(int attribute) {
+double pwr_value_for_attribute(int attribute) {
 	if (attribute < 12 && attribute % 2 == 0)
 		return ina_voltage(adc_for_attr[attribute], channel_for_attr[attribute]);
 	else
