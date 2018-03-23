@@ -1,13 +1,12 @@
 # CALSAT (STAC CubeSat) Userspace
 
 This repo contains all the software for our CubeSat. It is organized into
-subdirectory for each application. For example, code for the daemon maintaining
-CubeSat orientation is in the `/orientation/` folder.
+subdirectory for each application.
 
-Header files are separated and placed in the `/include/`subdirectory, so headers
-from the orientation daemon would be placed in `/include/orientation/`. This
-must be followed for all code, and header files should be extensively
-documented.
+To build for your host computer, run `make native-config all`.
+
+See [docs](docs) for more information, including how to build for the CubeSat's
+computer.
 
 ## Useful Links
 
