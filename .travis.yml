@@ -1,3 +1,5 @@
 lanuage: cpp
 install: true
 script: ./scripts/travis-build-test.sh
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
