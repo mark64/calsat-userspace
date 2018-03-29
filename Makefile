@@ -1,47 +1,47 @@
 # GPLv3
 # by Mark Hill 2017-2018
-RM    := rm -rf
-MKDIR := mkdir -p
-CMAKE := cmake
+RM    = rm -rf
+MKDIR = mkdir -p
+CMAKE = cmake
+GCOV = gcov
+SH = sh
 
 # Fine to edit this section
-# set to some value through commandline when building release
-# RELEASE =
+BUILD_TYPE := Debug
 PROJECT_NAME := calsat software
 TEST_EXECUTABLE_NAME := calsat-test
 TEST_MAIN_FILE := test/test.cc
-TEST_INSTALL_SCRIPT = $(SCRIPTS_DIR)/installTest.sh
-SUBDIRS = telem orientation drivers
-INCLUDE_ROOT = include
-EIGEN_DIR = $(INCLUDE_ROOT)/eigen
-INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR)
+SUBDIRS := telem orientation drivers
+INCLUDE_ROOT := include
+EIGEN_DIR := $(INCLUDE_ROOT)/eigen
+INCLUDES := $(INCLUDE_ROOT) $(EIGEN_DIR)
 # Not a good idea to do this since then #include paths make no sense
 # INCLUDES = $(INCLUDE_ROOT) $(EIGEN_DIR) $(patsubst %,$(INCLUDE_ROOT)/%,$(SUBDIRS))
-PROJECT_LIBS = m rt $(SUBDIRS)
-COMMFLAGS = -O2
-COMMTESTFLAGS = -g
-ifdef RELEASE
-CFLAGS = $(COMMFLAGS)
-CXXFLAGS = $(COMMFLAGS)
-else
-CFLAGS = $(COMMTESTFLAGS)
-CXXFLAGS = $(COMMTESTFLAGS)
-endif
+PROJECT_LIBS := m rt $(SUBDIRS)
+
+COMM_RELEASE_FLAGS = -O2
+COMM_TEST_FLAGS = -g -O0 --coverage
+COMM_FLAGS = $(if $(filter Debug,$(BUILD_TYPE)), $(COMM_TEST_FLAGS), $(COMM_FLAGS))
+CFLAGS = $(COMM_TEST_FLAGS)
+CXXFLAGS = $(COMM_TEST_FLAGS)
+GCOV_FLAGS =
 
 # Don't edit this
 TOOLCHAIN_PREFIX := toolchain-
 TOOLCHAIN_INSTALL_PREFIX := install-
 NATIVE_TOOLCHAIN_NAME := native
-BUILD_DIR_BASE = build_
+BUILD_DIR_BASE := build_
 BUILD_DIR = $(BUILD_DIR_BASE)$(subst $(TOOLCHAIN_PREFIX),,$(TOOLCHAIN_NAME))
-SCRIPTS_DIR = scripts
+SCRIPTS_DIR := scripts
 BUILD_MAKEFILE = $(BUILD_DIR)/Makefile
-ROOT_MAKEFILE = Makefile
+ROOT_MAKEFILE := Makefile
 CONFIG = .config
 
 # Don't edit this
 ifneq ("","$(wildcard $(strip $(CONFIG)))")
 include $(CONFIG)
+else
+TOOLCHAIN_NAME = $(TOOLCHAIN_PREFIX)$(NATIVE_TOOLCHAIN_NAME)
 endif
 ifdef TOOLCHAIN_NAME
 ifneq ("$(TOOLCHAIN_NAME)","$(TOOLCHAIN_PREFIX)$(NATIVE_TOOLCHAIN_NAME)")
@@ -90,7 +90,7 @@ $(BUILD_MAKEFILE): $(CONFIG) $(CMAKE_TOOLCHAIN_FILE) $(ROOT_MAKEFILE) | $(BUILD_
 		-DPROJECT_NAME="$(PROJECT_NAME)" \
 		-DCFLAGS="$(CFLAGS)" \
 		-DCXXFLAGS="$(CXXFLAGS)" \
-		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_BUILD_TYPE="$(BUILD_TYPE)" \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 		-DCMAKE_TOOLCHAIN_FILE=$(subst $(BUILD_DIR)/%,%,$(CMAKE_TOOLCHAIN_FILE_)) ..)
 
@@ -101,7 +101,9 @@ $(BUILD_DIR): $(CONFIG)
 	$(MKDIR) $@
 
 $(CONFIG):
-	$(error no config detected.$(newline)$(subst targets:,targets:$(newline),$(shell $(MAKE) listconfigs))$(newline))
+	$(info no config detected.$(newline)$(subst targets:,targets:$(newline),$(shell $(MAKE) listconfigs))$(newline))
+	@- printf "using native-config as default\n"
+	@- $(MAKE) $(NATIVE_TOOLCHAIN_NAME)-config
 
 listconfigs:
 	@- printf "build a configuration using \"make <config>\". "
@@ -111,23 +113,19 @@ $(SUPPORTED_BOARDS_CONFIG_TARGETS):
 	@ printf "TOOLCHAIN_NAME = $(TOOLCHAIN_PREFIX)$(subst -config,,$@)\n" > $(CONFIG)
 
 install:
-	@ (sh $(TEST_INSTALL_SCRIPT))
 
 test: install
-	@ (ssh rocket $(TEST_EXECUTABLE_NAME))
+	@ $(BUILD_DIR)/$(TEST_EXECUTABLE_NAME)
+
+coverage:
+	@ cd $(BUILD_DIR) && $(GCOV) $(GCOV_FLAGS) $(abspath $(shell find $(BUILD_DIR) -name '*.gcno'))
 
 clean:
 	@ (cd $(BUILD_DIR) && $(MAKE) clean)
 
 distclean:
-	@- $(MAKE) --silent -C $(BUILD_DIR) clean || true
-	@- $(RM) $(BUILD_MAKEFILE)
-	@- $(RM) $(BUILD_DIR)/src
-	@- $(RM) $(BUILD_DIR)/test
-	@- $(RM) $(BUILD_DIR)/CMake*
-	@- $(RM) $(BUILD_DIR)/cmake.*
-	@- $(RM) $(BUILD_DIR)/*.cmake
-	@- $(RM) $(BUILD_DIR)/*.txt
+	@- $(RM) $(BUILD_DIR)
+	@- $(RM) $(CONFIG)
 
 reallyclean:
 	@- $(RM) build*

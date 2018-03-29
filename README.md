@@ -1,6 +1,7 @@
 # CALSAT (STAC CubeSat) Userspace
 
 [![Build Status](https://travis-ci.org/space-technologies-at-california/calsat-userspace.svg?branch=master)](https://travis-ci.org/space-technologies-at-california/calsat-userspace)
+[![codecov](https://codecov.io/gh/space-technologies-at-california/calsat-userspace/branch/master/graph/badge.svg)](https://codecov.io/gh/space-technologies-at-california/calsat-userspace)
 [![CodeFactor](https://www.codefactor.io/repository/github/space-technologies-at-california/calsat-userspace/badge)](https://www.codefactor.io/repository/github/space-technologies-at-california/calsat-userspace)
 
 This repo contains all the software for our CubeSat. It is organized into
