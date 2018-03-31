@@ -2,4 +2,6 @@
 mkdir -p build
 cd build
 cmake ..
-make all test coverage
+make -j4 all
+make test
+make coverage
