@@ -4,8 +4,7 @@
 
 - Setup config repo (Mark)
 - integrate
-  [calsat-userspace](https://github.com/space-technologies-at-california/calsat-userspace) and
-  [calsat-kernel-modules](https://github.com/space-technologies-at-california/calsat-kernel-modules)
+  [calsat-userspace](https://github.com/space-technologies-at-california/calsat-userspace)
   into the build (Mark)
 
 ## Init
@@ -35,22 +34,11 @@
 - code to deploy PCBSats
 	- waiting on motor specifications
 
-## Meta Project
-
-- Continuous integration (Mark)
-- Setup test framework (Mark)
-
-# Kernel TODO
-
-## Linux RT
-
-- look into Linux RT support (Mark)
-
 ## Drivers
 
 - GPS driver (Mark)
 - IMU drivers (Mark)
-- Radio network driver (Mark)
+- Radio network setup (Mark)
 - Telemetry driver (Mark)
 
 # Electronics TODO

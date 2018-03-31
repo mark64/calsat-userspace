@@ -1,8 +1,8 @@
 /**
  * Main function for tests
  */
-#include<stdio.h>
+#include "UnitTest++/UnitTest++.h"
 
 int main(int argc, char **argv) {
-	printf("works\n");
+	return UnitTest::RunAllTests();
 }

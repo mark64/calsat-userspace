@@ -1,3 +1,9 @@
 [submodule "eigen"]
-	path = include/eigen
+	path = external/eigen
 	url = https://github.com/RLovelett/eigen
+[submodule "src/test/unittest-cpp"]
+	path = src/test/unittest-cpp
+	url = https://github.com/unittest-cpp/unittest-cpp
+[submodule "test/unittest-cpp"]
+	path = external/unittest-cpp
+	url = https://github.com/unittest-cpp/unittest-cpp

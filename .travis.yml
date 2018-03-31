@@ -1,4 +1,3 @@
-lanuage: cpp
 install: true
 script: ./scripts/travis-build-test.sh
 after_success:
