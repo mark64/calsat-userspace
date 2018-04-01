@@ -4,7 +4,7 @@
 //   by Mark Hill
 
 #ifndef _i2cctl
-#define _i2cctl   
+#define _i2cctl
 
 #include<stdint.h>
 

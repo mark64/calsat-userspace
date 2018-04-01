@@ -1,55 +1,51 @@
 # by Mark Hill
-# using tutorial from https://www.johnlamp.net/cmake-tutorial-4-libraries-and-subdirectories.html
-
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-
-# flight controller test section
-project(${PROJECT_NAME})
-
-set(CMAKE_C_FLAGS "${CFLAGS}")
-set(CMAKE_CXX_FLAGS "${CXXFLAGS}")
-# language settings
-#   enable C11 mode
-macro(use_c11)
-	if (CMAKE_VERSION VERSION_LESS "3.1")
-		if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-			set(CMAKE_C_FLAGS "--std=gnu11 -pedantic ${CMAKE_C_FLAGS}")
-		endif()
-	else()
-		set (CMAKE_C_STANDARD 11)
-	endif()
-endmacro(use_c11)
-use_c11()
-
-macro(use_cxx11)
-	if (CMAKE_VERSION VERSION_LESS "3.1")
-		if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-			set(CMAKE_CXX_FLAGS "--std=gnu11 -pedantic ${CMAKE_CXX_FLAGS}")
-		endif()
-	else()
-		set (CMAKE_CXX_STANDARD 11)
-	endif()
-endmacro(use_cxx11)
-use_cxx11()
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${INCLUDES})
-
-# runs CMake on the subdirectories
-foreach(dir ${SUBDIRS})
-	add_subdirectory(${dir})
-endforeach(dir)
-
-# create executable
-add_executable(${TEST_EXECUTABLE_NAME} ${TEST_MAIN_FILE})
-target_link_libraries(${TEST_EXECUTABLE_NAME} ${PROJECT_LIBS})
-
-# threading section
-find_package(Threads REQUIRED)
-if(THREADS_HAVE_PTHREAD_ARG)
-	target_compile_options(PUBLIC ${TEST_EXECUTABLE_NAME} "-pthread")
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
-if (CMAKE_THREAD_LIBS_INIT)
-	target_link_libraries(${TEST_EXECUTABLE_NAME} ${CMAKE_THREAD_LIBS_INIT})
+project(cs-usrlnd)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    ${CMAKE_SOURCE_DIR}/cmake/
+)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(TEST_EXECUTABLE_NAME ${PROJECT_NAME}-test)
+set(SOURCE_ROOT ${CMAKE_SOURCE_DIR}/src)
+set(INCLUDE_ROOT ${CMAKE_SOURCE_DIR}/include)
+set(SCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/scripts)
+set(SUBDIRS comm drivers orientation telem)
+
+include(EditorHelpers)
+include(ConfigManagement)
+
+set(EIGEN_INCLUDE_PATH external/eigen/Eigen)
+if(NOT EXISTS ${EIGEN_INCLUDE_PATH})
+    message(STATUS "Cloning submodules")
+    execute_process(COMMAND git submodule update --init)
 endif()
+include_directories(${INCLUDE_ROOT} ${EIGEN_INCLUDE_PATH})
+
+if(CMAKE_BUILD_TYPE EQUAL Release)
+    set(CMAKE_C_FLAGS "-Wall -Wextra -O3")
+else()
+    include(CTest)
+    set(CMAKE_C_FLAGS "-Wall -Wextra -g -O0 --coverage")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/external/unittest-cpp EXCLUDE_FROM_ALL)
+    include_directories(${CMAKE_SOURCE_DIR}/external/unittest-cpp)
+    enable_testing()
+endif()
+set(CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
+set (CMAKE_C_STANDARD 11)
+set (CMAKE_CXX_STANDARD 11)
+
+find_program(GCOV gcov)
+if(GCOV)
+    message(STATUS "Found gcov: ${GCOV}")
+    add_custom_target(coverage COMMAND sh ${SCRIPTS_ROOT}/coverage.sh)
+endif()
+
+foreach(DIR ${SUBDIRS})
+    add_subdirectory(src/${DIR})
+endforeach(DIR)
 
 set(CONFIGURED_ONCE TRUE CACHE INTERNAL "")

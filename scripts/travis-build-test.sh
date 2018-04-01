@@ -1,2 +1,7 @@
 #!/usr/bin/env sh
-make all test coverage
+mkdir -p build
+cd build
+cmake ..
+make -j4 all
+make test
+make coverage
