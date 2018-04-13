@@ -101,7 +101,7 @@ static uint8_t _tenbit_enabled = 0;
 static int i2cSetAddress(uint16_t address) {
     // in case the bus was never set, this ensures the i2c device is always initialized
     i2cInit();
-    
+
     // set ten bit address mode
     uint8_t isTenBit = (address - 127 > 0) ? 1 : 0;
     if (_tenbit_enabled != isTenBit && ioctl(_i2cFile, I2C_TENBIT, isTenBit))
@@ -165,14 +165,3 @@ write_error:
     printf("failed to write %i bytes to device %x\n", count, address);
     return -1;
 }
-
-
-
-    
-
-
-
-
-
-
-

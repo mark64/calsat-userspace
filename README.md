@@ -1,14 +1,19 @@
 # CALSAT (STAC CubeSat) Userspace
 
 [![Build Status](https://travis-ci.org/space-technologies-at-california/calsat-userspace.svg?branch=master)](https://travis-ci.org/space-technologies-at-california/calsat-userspace)
+[![codecov](https://codecov.io/gh/space-technologies-at-california/calsat-userspace/branch/master/graph/badge.svg)](https://codecov.io/gh/space-technologies-at-california/calsat-userspace)
 [![CodeFactor](https://www.codefactor.io/repository/github/space-technologies-at-california/calsat-userspace/badge)](https://www.codefactor.io/repository/github/space-technologies-at-california/calsat-userspace)
 
 This repo contains all the software for our CubeSat. It is organized into
 subdirectory for each application.
 
-To build for your host computer, run:
+This project uses CMake. To build for your host computer, run:
+
 ```shell
-make native-config all
+$ mkdir -p build
+$ cd build
+$ cmake ..
+$ make
 ```
 
 See [build-process](docs/build-process.md) for more information about building
@@ -26,3 +31,6 @@ Documentation](https://www.digi.com/resources/documentation/digidocs/90001547/#l
 This is the IRVINE01 software repository, which has example implementations for
 sensor and comms software: [IRVINE01
 repo](https://github.com/irvinecubesat/irvine-01-sw)
+
+We use UnitTest++ for testing. See their wiki for here: [UnitTest++
+Wiki](https://github.com/unittest-cpp/unittest-cpp/wiki)

@@ -1,3 +1,7 @@
 #!/usr/bin/env sh
-make native-config all
-echo "implemented soon"
+mkdir -p build
+cd build
+cmake ..
+make -j4 all
+make test
+make coverage
