@@ -1,3 +1,8 @@
-file(GLOB SOURCES "*.cpp" "*.c" "*.cc")
-get_filename_component(LIBNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-add_library(${LIBNAME} SHARED "${SOURCES}")
+add_executable(commd commd.c)
+add_executable(commSend commSend.c)
+
+target_include_directories(commd PUBLIC /usr/local/include/polysat)
+target_include_directories(commSend PUBLIC /usr/local/include/polysat)
+
+target_link_libraries(commd proc pthread)
+target_link_libraries(commSend proc pthread)
