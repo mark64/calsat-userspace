@@ -25,7 +25,7 @@ int packRequest(RequestType type, void *request_struct, uint16_t req_struct_size
                        MAX_PACKET_DATA_SIZE, txSize);
         return -1;
     }
-    txData = (uint8_t *) malloc(txSize);
+    txData = (uint8_t *) calloc(1, txSize);
     if (!txData) {
         // NEEDS LOG MESSAGE "Could not allocate memory for request"
         fprintf(stderr, "Could not allocate memory for request");
@@ -105,7 +105,13 @@ int unpackRequest(void *data, int dataLen,
     // We can return the size of the variable Data
     return var_data_size;
 }
-    
+
+
+
+
+
+/* This is a simple test */
+
 struct TEST_PACK_STRUCT {
     int x;
     uint16_t y;
@@ -146,6 +152,7 @@ int test_pack_unpack() {
     fprintf(stderr, "%d:%d\n", typeIn, typeOut);
     fprintf(stderr, "expected: %s\n", varData);
     fprintf(stderr, "and got : %s\n", (char *) unpackedVarData);
+    free(data);
     return 0;
 }
 

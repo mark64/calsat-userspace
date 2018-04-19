@@ -1,0 +1,16 @@
+The cmdSend utility sends a single command to the CubeSat.
+
+It is a separate utility mainly because the built-in argument parsing that the shell does is convenient. However, it also is nice to have a separate program for modularity. Of course, this does create the issue that this utility cannot modify anything in the program which calls it and thus provides less freedom on that front. May end up switching to using wordexp in order to parse the command so that exerything might be on a single program.
+Regardless, the options for a command are as follows:
+
+
+-ip     xxx.xxx.xxx.xxx     specify an IPv4 address for the CubeSat
+-i      INTEGER             specify the sequence id for the command
+-t      INTEGER             specify the time in seconds until this command should execute
+-r      1/2/3               specify if stdout/stderr/both should be sent in the response
+-o      0/1                 specify if this command should overwrite the result of a command with the same id number, aka: "CubeSat, just run this command blindly please"
+-s      0/1                 specifies if this command has to be run in sequence (assert that id == next_expected_sequence_id_on_cubesat)
+
+-C      ARGV                the command to be sent. This should be the last argument, as the ARGV can be arbitrarily long
+
+

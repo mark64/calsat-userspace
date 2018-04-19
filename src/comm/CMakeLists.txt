@@ -1,11 +1,8 @@
-set(SOURCES
-    comms.cpp
-)
-get_filename_component(DIRNAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-add_executable(${DIRNAME}d main.cpp ${SOURCES})
+add_executable(commd commd.c     argvUtil.c encodePacket.c sendPacket.c packPacket.c)
+add_executable(cmdSend cmdSend.c argvUtil.c encodePacket.c sendPacket.c packPacket.c)
 
-if(BUILD_TESTING)
-    add_executable(${DIRNAME}d-test test.cpp ${SOURCES})
-    target_link_libraries(${DIRNAME}d-test drivers UnitTest++)
-    add_test(${DIRNAME}d-test ${DIRNAME}d-test)
-endif()
+target_include_directories(commd PUBLIC /usr/local/include/polysat)
+target_include_directories(cmdSend PUBLIC /usr/local/include/polysat)
+
+target_link_libraries(commd proc pthread)
+target_link_libraries(cmdSend proc pthread)

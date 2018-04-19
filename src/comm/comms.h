@@ -1,0 +1,98 @@
+#ifndef COMMS_H
+#define COMMS_H
+
+#include <sys/types.h>                                                                               
+#include <sys/socket.h>
+#include <stdio.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stdint.h>
+
+#define MAX_PACKET_SIZE 255
+#define DATA_HANDLE_SIZE 0
+#define MAX_PACKET_DATA_SIZE (MAX_PACKET_SIZE - DATA_HANDLE_SIZE)
+/*
+  
+  --------   Radio Modem Information   --------- 
+  Our P2400 radio modem allows for packets of 256 bytes. The UDP+IPv4 protocol requires 28 bytes, and so we have 228 bytes left for our command. The P2400 has a 32-bit CRC check and forward error correction, and retransmission settings, so we can avoid using extra CPU time to worry about packet correctness. The P2400 also contains a programmable Network ID to avoid picking up other signals.
+
+  --------   Optional things to implement    ------------
+  1. Multiple-packet commands. If we wish to have commands of longer than 200 bytes, then we would need to accept multiple packets for a single command. This would also give us the capability of decreasing the maximum packet size, thus decreasing the probability that any particular packet gets corrupted. However, I cannot tell if this would actually create a benifit as the radio modem does forward error correction and so it might actually increase overhead. There are no drawbacks of this besides code complexity and it would take up packet bytes. If we do not recieve all packets within an acceptable time-frame, we will abort that process. 
+  2. Timed commands. Not sure if we need this really, but it is something to consider. We would need a command scheduler on-board, and this would take up more space in the packet.
+  3. Space craft ID. Other people are doing this. It would be useful to make sure we don't unpack and use some data from someone else accidentally; however, our P2400 has a Network ID we can set to avoid interference. 
+ */
+#define MAX_ARG_NUM 10
+typedef uint32_t SequenceId;
+
+
+/* These are ordered in the same way that they are ordered in the config file for polysat
+   Each one corresponds to a handler that will be called on the cubeSat
+   Each one has a corresponding struct below as well which constitutes all the data passed to the cubesat when using the corresponding handler
+  */
+typedef enum requestType {
+    INVALID_REQ,
+    COMMAND_REQ,        // Command, which will include a shell command string
+    CMD_RES_REQ,    // Command result request
+    RESULT_DEL_REQ,    // Command result acknowledgement
+    STATUS_REQ,
+} RequestType;
+
+typedef enum outputType {
+    STDOUT_OPTION = 1,
+    STDERR_OPTION = 2,
+    STDOUT_AND_STDERR_OPTION = 3, // STDOUT_AND_STDERR_OPTIONS = STDOUT_OPTION | STDERR_OPTION
+} OutputType;
+
+typedef struct commandRequest {
+    SequenceId cmdSeqId;
+    uint8_t    cmdNumArgs;
+} __attribute__((packed)) CommandRequest;
+#define MAX_CMD_SIZE (MAX_PACKET_SIZE - sizeof(CommandRequest) - sizeof(uint8_t))
+
+typedef struct commandResultRequest {
+    SequenceId cmdSeqId;
+    OutputType selectOutput : 8;
+    uint16_t   packetNum;
+} __attribute__((packed)) CommandResultRequest;
+
+typedef struct commandResultDeleteRequest {
+    SequenceId cmdSeqId;
+} __attribute__((packed)) CommandResultDeleteRequest;
+
+
+typedef struct statusRequest {
+    int idk;
+} __attribute__((packed)) StatusRequest;
+
+
+
+int send_to_sockaddr(char *data, uint16_t dataLen, struct sockaddr_in *addr);
+struct sockaddr_in *make_sockaddr(char *ip_address, int port);
+int send_to_sat(char *data, uint16_t dataLen);
+int send_to_ground(char *data, uint16_t dataLen, struct sockaddr_in *addr);
+
+int encodePacket(void *data, int dataLen, void **result);
+int decodePacket(void *data, int dataLen, void **result);
+
+int argvEncode(int argc, char **argv, char **result);
+char **argvDecode(char *str, int strLen, int argc);
+
+int packRequest(RequestType type, void *request_struct, uint16_t req_struct_size, 
+                                  void *var_data,       uint16_t var_data_size,
+                                  void **resultPointer);
+int unpackRequest(void *data, int dataLen,
+                  void **request_struct, int request_struct_size,
+                  void **variableData);
+
+
+
+
+
+
+#endif
