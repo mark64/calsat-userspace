@@ -1,0 +1,37 @@
+The cmdSend utility sends a single command to the CubeSat.
+
+It is a separate utility mainly because the built-in argument parsing that the shell does is convenient. However, it also is nice to have a separate program for modularity. Of course, this does create the issue that this utility cannot modify anything in the program which calls it and thus provides less freedom on that front. May end up switching to using wordexp in order to parse the command so that exerything might be on a single program.
+Regardless, the options for a command are as follows:
+
+4+4+2
+
+-a      xxx.xxx.xxx.xxx     Required. Specify an IPv4 address for the CubeSat
+-i      INTEGER             Required. Specify the sequence id for the command
+-d      INTEGER             Optional. Specify the delay in ms until this command should execute
+-t      INTEGER             Optional. Specify the timeout in seconds before we kill the child process; 0 if we should never kill it;
+-o      0/1                 Optional. (default=0). Specify if this command should overwrite the result of a command with the same id number, aka: "CubeSat, just run this command blindly please and don't worry about losing results" (used for emergencies typically)
+-s      0/1                 Optional. (default=1). Specifies if this command has to be run in sequence (assert that id == next_expected_sequence_id_on_cubesat)
+-C      ARGV...             Required. The command to be sent. This should be the last argument, as the ARGV can be arbitrarily long
+The Command Request also includes all the options of Command Result Request, except that it will send all packets on completion.
+
+
+The Command Result Request is used to get the output of a command execution by its id number
+The Command Result Request is a type of File Request. It contains all options of File Request except -f (filename).
+The added options are:
+
+-r      0/1/2/3             Required. Specify if stdout/stderr/both should be returned. If it is both, then we send stdout before stderr
+-i      INTEGER             Required. Specify the command ID to fetch the result for
+-c      ZLIB|NONE           Optional. (default=ZLIB). Specify compression algorithm to be used in result
+-p      0|INT,INT,INT,...   Specify all the packet numbers we wish to retrieve from the sat. If we want all of them to be sent, we just send 0. Note that packet numbers are positive (NOT zero indexed)
+
+
+Our library provides:
+-- Networking support
+-- Message Type Redirection:
+    -- The first byte of any message sent just designates the message type
+        -- Every message type is associated with a struct and a handler function
+        -- Every packet consists of: (msgType|varDataSize|structData|variableData), but may also be compressed and wrapped in error correction layers
+-- UDP single packet transmission
+-- SNACKS file transport
+    -- Sender specifies some fixed-width metadata and a file path (or multiple file paths), and the file(s) are sent in separate packets (each containing the metadata).
+       The receiver

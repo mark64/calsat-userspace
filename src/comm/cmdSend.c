@@ -15,13 +15,13 @@ int sendCommandRequestToSat(int argc, char **argv, CommandRequest *req) {
 
    void *data;
    int dataLen = packRequest(COMMAND_REQ, req, sizeof(CommandRequest),
-                                          argvEncoded, argvEncodedLen,
+                                          argvEncoded, (uint16_t) argvEncodedLen,
                                           &data);
    if (dataLen == -1) {
        return -1;
    }
 
-   int result = send_to_sat(data, dataLen);
+   int result = send_to_sat(data, (uint16_t) dataLen);
    free(argvEncoded);
    free(data);
    return result;
@@ -31,14 +31,15 @@ int sendCommandToSat(int argc, char **argv) {
    CommandRequest request;
    memset(&request, 0, sizeof(request));
    request.cmdSeqId = sequence_number;
-   request.cmdNumArgs = argc;
+   request.cmdNumArgs = (uint8_t) argc;
    return sendCommandRequestToSat(argc, argv, &request);
 }
 
 int main(int argc, char **argv) {
-    argv++;
-    argc--;
-    sendCommandToSat(argc, argv);
+    int opt = 0;
+    CommandRequest request;
+
+    sendCommandToSat(argc-1, argv+1);
     return 0;
 }
 

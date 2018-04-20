@@ -6,10 +6,9 @@
    the different arguments 
 */
 
-
 /* This returns a malloc'd string that can be decoded by argvDecode */
 int argvEncode(int argc, char **argv, char **result) {
-    int *lengths = malloc(sizeof(int) * argc);  // So we don't have to keep recomputing the length of the string
+    size_t *lengths = malloc(sizeof(int) * argc);  // So we don't have to keep recomputing the length of the string
     int total_size = 0;                         // This counts the total number of bytes that argv will take up
 
     // We just count the total command size
@@ -18,18 +17,12 @@ int argvEncode(int argc, char **argv, char **result) {
         total_size += lengths[i];
     }
 
-    if (total_size > MAX_CMD_SIZE) {
-        fprintf(stderr, "Command size is %d bytes but max allowable is %d bytes", 
-                total_size, (int) MAX_CMD_SIZE);
-        return -1;
-    }
-
-
     char *res = malloc(sizeof(char)*total_size);
     if (!res) {
         fprintf(stderr, "Could not malloc for argv");
         return -1;
     }
+
     int p = 0; // This denotes how far we are in the malloc'd memory RES.
     for (int i = 0; i < argc; i++) {
         strncpy(res + p, argv[i], lengths[i]);
@@ -66,13 +59,3 @@ char **argvDecode(char *str, int strLen, int argc) {
     }
     return argv;
 }
-
-
-
-
-
-
-
-
-
-

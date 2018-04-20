@@ -9,19 +9,19 @@
    - The next var_data_size bytes consist of the var_data, the variable sized data
    This is the final function before this data gets send to the recepient
  */
-int packRequest(RequestType type, void *request_struct, uint16_t req_struct_size, 
+int packRequest(RequestType type, void *request_struct, uint16_t req_struct_size,
                                   void *var_data,       uint16_t var_data_size,
                                   void **resultPointer) {
     uint8_t *txData, *txDataHead; // int8_t so it does byte pointer arithmetic
     
-    int txSize = sizeof(uint8_t)  // RequestType
-               + sizeof(uint16_t) // For the length of the variable data
-               + req_struct_size  // For the request_struct
-               + var_data_size;   // For the variable data
+    size_t txSize = sizeof(uint8_t)  // RequestType
+                  + sizeof(uint16_t) // For the length of the variable data
+                  + req_struct_size  // For the request_struct
+                  + var_data_size;   // For the variable data
 
     if (txSize > MAX_PACKET_DATA_SIZE) {
         // NEEDS LOG MESSAGE
-        fprintf(stderr, "Packet data exceeds maximum limit; Limit: %d; Actual: %d\n", 
+        fprintf(stderr, "Packet data exceeds maximum limit; Limit: %d; Actual: %zu\n",
                        MAX_PACKET_DATA_SIZE, txSize);
         return -1;
     }
@@ -49,7 +49,7 @@ int packRequest(RequestType type, void *request_struct, uint16_t req_struct_size
 
     // Save the results and return success
     *resultPointer = txDataHead;
-    return txSize;
+    return (int) txSize;
 }
 
 /*
@@ -70,10 +70,10 @@ int stripBytes(uint8_t **data_src, uint8_t *data_dst, int amount, int *remaining
    Thus the Caller should likely not mutate any pointers provided by this function, as those pointers refer to the original data
    Returns the size of the variable length data on success, and -1 if error.
  */
-int unpackRequest(void *data, int dataLen,
-                  void **request_struct, int request_struct_size,
+int unpackRequest(void *data, size_t dataLen,
+                  void **request_struct, size_t request_struct_size,
                   void **variableData) {
-    uint8_t *byteData = (int8_t *) data;
+    uint8_t *byteData = (uint8_t *) data;
     uint8_t *endOfData = byteData + dataLen;    // This is just outside our allocated memory and should never be dereferenced
 
     
@@ -107,9 +107,6 @@ int unpackRequest(void *data, int dataLen,
 }
 
 
-
-
-
 /* This is a simple test */
 
 struct TEST_PACK_STRUCT {
@@ -126,7 +123,7 @@ int test_pack_unpack() {
     sIn.y = 0xABCD;
     sIn.z = 0xBAD000AF;
     sIn.a = 'y';
-    RequestType typeIn = 5;
+    RequestType typeIn = COMMAND_REQ;
     char *varData = "jnhbvgcfdxfchjvkjnklnjmb vcdfxdfhtgyhuknjbhvtgybh   ";
     
     // Let's pack it up
@@ -141,7 +138,7 @@ int test_pack_unpack() {
     struct TEST_PACK_STRUCT *sOut;
     void *unpackedVarData;
     // Plus one minus one so that we ignore the first byte
-    int varDataLen = unpackRequest(data+1, dataSize-1, (void **) &sOut, sizeof(*sOut), (void **) &unpackedVarData);
+    int varDataLen = unpackRequest(data+1, dataSize-1, (void **) &sOut, sizeof(*sOut), &unpackedVarData);
     if (varDataLen == -1) {
         fprintf(stderr, "Failure to unpack");
         return -1;
