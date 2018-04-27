@@ -1,3 +1,5 @@
+set(CMAKE_BUILD_TYPE Debug)
+
 add_executable(commd   commd.c   comms.h argvUtil.c encodePacket.c sendPacket.c packPacket.c fileData.c)
 add_executable(cmdSend cmdSend.c comms.h argvUtil.c encodePacket.c sendPacket.c packPacket.c)
 

@@ -47,7 +47,7 @@ void closeFile(FileData *fdata) {
 // Get File Packet #, int getFileData(long startByte, long endByte, FileData file, void *buffer);
 // This function should only really be called in sequence
 // Optionally, inputting -1 into startByte will just start the read from wherever the fp is
-size_t getFileData(long startByte, size_t numBytes, FileData *fdata, void *buffer) {
+size_t readFileData(long startByte, size_t numBytes, FileData *fdata, void *buffer) {
     FILE *fp = fdata->fp;
 
     if (fdata->num_bytes == 0) {
@@ -74,7 +74,7 @@ int testPrintFile(char *filename) {
     memset(buffer, 0, 256);
     size_t size;
     long byteCounter = 0;
-    while ((size = getFileData(byteCounter, 255, ptr, buffer)) > 0) {
+    while ((size = readFileData(byteCounter, 255, ptr, buffer)) > 0) {
         printf("%.*s", (int) size, buffer);
         byteCounter += 2*255;
     }

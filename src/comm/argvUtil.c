@@ -8,7 +8,7 @@
 
 /* This returns a malloc'd string that can be decoded by argvDecode */
 int argvEncode(int argc, char **argv, char **result) {
-    size_t *lengths = malloc(sizeof(int) * argc);  // So we don't have to keep recomputing the length of the string
+    size_t *lengths = malloc(sizeof(size_t) * argc);  // So we don't have to keep recomputing the length of the string
     int total_size = 0;                         // This counts the total number of bytes that argv will take up
 
     // We just count the total command size

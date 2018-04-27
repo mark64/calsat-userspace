@@ -9,12 +9,21 @@ int send_to_sockaddr(char *data, uint16_t dataLen, struct sockaddr_in *addr) {
     int sockfd, result;
     // Ideally this is where we would encode the data with encodePacket
     // But we can't really do that while we're still using poly sat library
-    if ((sockfd = socket_init(0)) < 0) {
+    if ((sockfd = socket_init(5000)) < 0) {
         return -1;
     }
     result = socket_write(sockfd, data, dataLen, addr);
     socket_close(sockfd);
     return result;
+}
+
+int send_to_client(char *data, uint16_t dataLen, ClientData *cli) {
+    errno = 0;
+    int res = socket_write(cli->socket, data, dataLen, cli->src);
+    if (errno != 0) {
+        perror("Error in sending to client");
+    }
+    return errno;
 }
 
 struct sockaddr_in *make_sockaddr(char *ip_address, int port) {

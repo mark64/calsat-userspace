@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdint.h>
+#include <wait.h>
 
 #define MAX_PACKET_SIZE 255
 #define DATA_HANDLE_SIZE 0
@@ -41,33 +42,38 @@ typedef enum compressionMethod {
 } CompressionMethod;
 
 #define PATH_COMMAND_OUTPUT_FILE "/home/jtstog/stac/calsat-userspace/src/comm/cmdresults/"
-typedef enum FileBasePath {
+typedef enum fileBasePath {
     PATH_COMMAND_OUTPUT_FILE_SIG,
-};
+} FileBasePath;
 
 /* These are ordered in the same way that they are ordered in the config file for polysat
    Each one corresponds to a handler that will be called on the cubeSat
    Each one has a corresponding struct below as well which constitutes all the data passed to the cubesat when using the corresponding handler
   */
-typedef enum requestType {
+typedef enum messageType {
     INVALID_REQ,
-    COMMAND_REQ,        // Command, which will include a shell command string
-    CMD_RES_REQ,    // Command result request
+    COMMAND_REQ,       // Command, which will include a shell command string
+    CMD_RES_REQ,       // Command result request
     RESULT_DEL_REQ,    // Command result acknowledgement
     STATUS_REQ,
-} RequestType;
+    CMD_RES_RESP,
+} MessageType;
 
 /* These settings, along with the Command ID, will determine essentially exactly which byte is in which packet
  * This is because the files will remain the same size, and so the bytesPerPacket+getStdout+getStderr determine
  * how the command output is split across packets. This allows us to use SNACKS while
  * keeping track of a minimal number of things
  * */
-typedef struct cmdResultResponseFmt {
-    uint8_t             getStdout;
-    uint8_t             getStderr;
-} __attribute__((packed)) CmdResultResponseFmt;
-
 /* The following packed structures are to be sent across the radio and each determine a single packet */
+
+typedef struct CommandResultResponseFormat {
+    uint8_t               getStdout;
+    uint8_t               getStderr;
+    CompressionMethod     compressionMethod;
+    uint8_t               numBytesPerPacket;
+} __attribute__((packed)) CommandResultResponseFormat;
+
+
 typedef struct commandRequest {
     SequenceId           cmdSeqId;
     uint8_t              cmdNumArgs;
@@ -76,18 +82,16 @@ typedef struct commandRequest {
     uint8_t              overwrite; // Overwrite old files with same cmdSeqId
     uint8_t              inOrder; // Only run command if it aligns with the current sequence number
     // The following are for the response that will be sent
-    CmdResultResponseFmt responseFmt;
-    uint8_t              padding;
+    CommandResultResponseFormat respFmt;
 } __attribute__((packed)) CommandRequest;
 
 
 typedef struct commandResultRequest {
-    SequenceId           cmdSeqId;
-    CmdResultResponseFmt fmt;
+    SequenceId            cmdSeqId;
     // The actual packets selected for retransmission are in the variable data section of our packet.
     // numRequestedPackets details how many to expect, and is 0 if we should transmit all the packets.
-    PacketNumber         numRequestedPackets;
-    uint8_t              padding;
+    PacketNumber          numRequestedPackets;
+    CommandResultResponseFormat respFmt;
 } __attribute__((packed)) CommandResultRequest;
 
 typedef struct commandResultDeleteRequest {
@@ -99,29 +103,27 @@ typedef struct statusRequest {
 } __attribute__((packed)) StatusRequest;
 
 typedef struct commandResultPacket {
-    SequenceId           cmdSeqId;
-    CmdResultResponseFmt fmt;
-    PacketNumber         packetNumber;      // 0 indexed packet number
-    PacketNumber         numPackets;        // Total number of packets being sent for this cmdId and these fmt settings
-    uint8_t              padding;
+    SequenceId                  cmdSeqId;
+    CommandResultResponseFormat fmt; // Maybe not needed
+    PacketNumber                packetNumber;      // 0 indexed packet number
+    PacketNumber                numPackets;        // Total number of packets being sent for this cmdId and these fmt settings
 } __attribute__((packed)) CommandResultPacket;
 
-typedef struct fileContentRequest {
-    int   requestId;
 
-};
 
-typedef struct fileContentPacket {
-    int                   requestId;
-    PacketNumber          packetNumber;       // 0 indexed packet number
-    PacketNumber          numPackets;         // Total number of packets that compose the file being sent
-    uint16_t              bytesPerPacket;     // Variable amount of bytes per response packet
-    CompressionMethod     compressionMethod;
-} __attribute__((packed)) FileContentPacket;
+
+
+typedef struct clientData {
+    struct sockaddr_in *src;
+    int socket;
+    int messageId;
+} ClientData;
+
 /* Function Declarations */
 int send_to_sockaddr(char *data, uint16_t dataLen, struct sockaddr_in *addr);
 struct sockaddr_in *make_sockaddr(char *ip_address, int port);
 int send_to_sat(char *data, uint16_t dataLen);
+int send_to_client(char *data, uint16_t dataLen, ClientData *cli);
 int send_to_ground(char *data, uint16_t dataLen, struct sockaddr_in *addr);
 
 int encodePacket(void *data, int dataLen, void **result);
@@ -130,11 +132,11 @@ int decodePacket(void *data, int dataLen, void **result);
 int argvEncode(int argc, char **argv, char **result);
 char **argvDecode(char *str, int strLen, int argc);
 
-int packRequest(RequestType type, void *request_struct, uint16_t req_struct_size, 
-                                  void *var_data,       uint16_t var_data_size,
-                                  void **resultPointer);
-int unpackRequest(void *data, size_t dataLen,
-                  void **request_struct, size_t request_struct_size,
+int packMessage(MessageType type, void *msg_struct, uint16_t msg_struct_size,
+                void *var_data, uint16_t var_data_size,
+                void *buffer, size_t buffer_size);
+int unpackMessage(void *data, size_t dataLen,
+                  void **msg_struct, size_t msg_struct_size,
                   void **variableData);
 
 typedef struct fileData {
@@ -144,6 +146,7 @@ typedef struct fileData {
 
 FileData *openFile(char *filename);
 void closeFile(FileData *fdata);
-int getFileData(long startByte, size_t numBytes, FileData *fdata, void *buffer);
+int readFileData(long startByte, size_t numBytes, FileData *fdata, void *buffer);
+
 
 #endif
