@@ -13,7 +13,16 @@
 #define INA_1_ADDR 0x82
 
 /**
+ * puts the given ic into poweroff mode
+ * @ic          a number >= 0 referring to which ina3221 ic to use
+ *
+ * @return      0 on success, -1 on error
+ */
+int ina_sleep_ic(uint8_t ic);
+
+/**
  * obtains the bus voltage for the given adc and channel
+ * will initialize the ic if it is off, unconfigured, or asleep
  * @ic			a number >= 0 referring to which ina3221 ic to use
  * @channel		the channel of the given ic to measure
  *
@@ -24,6 +33,7 @@ double ina_voltage(uint8_t ic, uint8_t channel);
 
 /**
  * obtains the bus current for the given adc and channel
+ * will initialize the ic if it is off, unconfigured, or asleep
  * @ic			a number >= 0 referring to which ina3221 ic to use
  * @channel		the channel of the given ic to measure
  *
